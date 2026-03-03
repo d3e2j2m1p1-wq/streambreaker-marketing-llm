@@ -69,22 +69,58 @@ listeners = st.sidebar.number_input(
     step=50
 )
 
-# Model 2 output (Stephanie)
-st.sidebar.subheader("Model 2: Lyric Analysis")
-hook_strength = st.sidebar.slider(
-    "Hook Strength (0-10)",
-    min_value=0.0,
-    max_value=10.0,
-    value=8.0,
-    step=0.5
+youtube_subs = st.sidebar.number_input(
+    "YouTube Subscribers",
+    min_value=0,
+    max_value=100000,
+    value=800,
+    step=100
 )
 
-has_lyrics = st.sidebar.checkbox("Has Lyrics", value=True)
+# Model 2 output (Stephanie)
+st.sidebar.subheader("Model 2: Lyric Analysis")
+
+sentiment = st.sidebar.selectbox(
+    "Sentiment",
+    ["positive", "neutral", "negative"],
+    index=0,
+    help="Overall emotional tone from NLP analysis"
+)
+
+lexical_diversity = st.sidebar.slider(
+    "Lexical Diversity (0-1)",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.72,
+    step=0.05,
+    help="Vocabulary richness and complexity"
+)
+
+hook_repetition = st.sidebar.slider(
+    "Hook Repetition (0-1)",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.85,
+    step=0.05,
+    help="Catchiness score from repeated phrases"
+)
+
+semantic_coherence = st.sidebar.slider(
+    "Semantic Coherence (0-1)",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.78,
+    step=0.05,
+    help="Lyrical consistency and theme coherence"
+)
+
+profanity = st.sidebar.checkbox("Contains Profanity", value=False)
 
 # Audio features
 st.sidebar.subheader("Audio Features")
 energy = st.sidebar.slider("Energy (0-10)", 0.0, 10.0, 7.5, 0.5)
 danceability = st.sidebar.slider("Danceability (0-10)", 0.0, 10.0, 7.0, 0.5)
+tempo = st.sidebar.slider("Tempo (BPM)", 60, 200, 125, 5, help="Beats per minute")
 
 # Generate button
 if st.sidebar.button("🚀 Generate Strategy", type="primary", use_container_width=True):
@@ -98,11 +134,16 @@ if st.sidebar.button("🚀 Generate Strategy", type="primary", use_container_wid
             genre=genre,
             instagram_followers=followers,
             spotify_listeners=listeners,
+            youtube_subscribers=youtube_subs,
             has_fanbase=followers > 500,
             energy=energy,
-            has_lyrics=has_lyrics,
-            hook_strength=hook_strength,
-            danceability=danceability
+            danceability=danceability,
+            tempo=tempo,
+            sentiment=sentiment,
+            lexical_diversity=lexical_diversity,
+            hook_repetition=hook_repetition,
+            semantic_coherence=semantic_coherence,
+            profanity_detected=profanity
         )
         
         # Display results

@@ -34,9 +34,20 @@ Generate a detailed marketing strategy for an independent artist with the follow
 
 **TRACK CHARACTERISTICS:**
 - Energy level: {energy}/10
-- Has strong lyrics: {has_lyrics}
-- Hook strength: {hook_strength}/10
 - Danceability: {danceability}/10
+- Tempo: {tempo} BPM
+
+**LYRIC ANALYSIS** (from Model 2 - NLP):
+- Sentiment: {sentiment} (positive/negative/neutral)
+- Lexical Diversity: {lexical_diversity}/1.0 (vocabulary richness)
+- Hook Repetition: {hook_repetition}/1.0 (catchiness potential)
+- Semantic Coherence: {semantic_coherence}/1.0 (lyrical consistency)
+- Contains Profanity: {profanity_detected}
+
+**Marketing Implications from Lyrics:**
+- {sentiment_marketing_note}
+- {lexical_diversity_note}
+- {hook_repetition_note}
 
 **BUDGET:**
 - Total marketing budget: ${budget}
@@ -85,11 +96,17 @@ def create_marketing_prompt(
     genre: str = "Indie Pop",
     instagram_followers: int = 500,
     spotify_listeners: int = 100,
+    youtube_subscribers: int = 0,
     has_fanbase: bool = False,
     energy: float = 7.0,
-    has_lyrics: bool = True,
-    hook_strength: float = 6.0,
     danceability: float = 6.5,
+    tempo: float = 120.0,
+    # New parameters from Model 2 (Stephanie's NLP analysis)
+    sentiment: str = "positive",
+    lexical_diversity: float = 0.5,
+    hook_repetition: float = 0.5,
+    semantic_coherence: float = 0.5,
+    profanity_detected: bool = False,
     career_stage: str = "emerging"
 ):
     """
@@ -98,6 +115,10 @@ def create_marketing_prompt(
     Args:
         prediction_probability: Model 1's prediction (0-100%)
         budget: Marketing budget in USD
+        sentiment: Lyric sentiment from Model 2 (positive/negative/neutral)
+        lexical_diversity: Vocabulary richness (0-1)
+        hook_repetition: Catchiness score (0-1)
+        semantic_coherence: Lyrical consistency (0-1)
         Other params: Artist and track characteristics
     
     Returns:
@@ -122,6 +143,28 @@ def create_marketing_prompt(
     else:
         budget_flexibility = "Low - must prioritize single best channel"
     
+    # Generate marketing insights from NLP features
+    if sentiment == "positive":
+        sentiment_marketing_note = "Positive sentiment → Good for mainstream playlists, wider appeal"
+    elif sentiment == "negative":
+        sentiment_marketing_note = "Negative/dark sentiment → Target alternative/emo playlists, niche audiences"
+    else:
+        sentiment_marketing_note = "Neutral sentiment → Versatile, can target multiple playlist types"
+    
+    if lexical_diversity >= 0.7:
+        lexical_diversity_note = "High lyrical complexity → Appeal to lyrics-focused blogs, Genius annotations"
+    elif lexical_diversity >= 0.4:
+        lexical_diversity_note = "Moderate lyrical complexity → Balance between accessibility and depth"
+    else:
+        lexical_diversity_note = "Simple, repetitive lyrics → Good for TikTok, catchy radio potential"
+    
+    if hook_repetition >= 0.7:
+        hook_repetition_note = "Strong hook repetition → HIGH TikTok/viral potential, prioritize short-form video"
+    elif hook_repetition >= 0.4:
+        hook_repetition_note = "Moderate hook strength → Standard playlist approach"
+    else:
+        hook_repetition_note = "Weak hook → Focus on production quality, mood-based playlists"
+    
     return STRATEGY_PROMPT_TEMPLATE.format(
         prediction_probability=prediction_probability,
         confidence_level=confidence_level,
@@ -131,9 +174,16 @@ def create_marketing_prompt(
         has_fanbase="Yes" if has_fanbase else "No",
         career_stage=career_stage,
         energy=energy,
-        has_lyrics="Yes" if has_lyrics else "No",
-        hook_strength=hook_strength,
         danceability=danceability,
+        tempo=tempo,
+        sentiment=sentiment,
+        lexical_diversity=lexical_diversity,
+        hook_repetition=hook_repetition,
+        semantic_coherence=semantic_coherence,
+        profanity_detected="Yes" if profanity_detected else "No",
+        sentiment_marketing_note=sentiment_marketing_note,
+        lexical_diversity_note=lexical_diversity_note,
+        hook_repetition_note=hook_repetition_note,
         budget=budget,
         budget_flexibility=budget_flexibility
     )

@@ -35,11 +35,17 @@ class MarketingStrategyGenerator:
         genre: str = "Indie Pop",
         instagram_followers: int = 500,
         spotify_listeners: int = 100,
+        youtube_subscribers: int = 0,
         has_fanbase: bool = False,
         energy: float = 7.0,
-        has_lyrics: bool = True,
-        hook_strength: float = 6.0,
         danceability: float = 6.5,
+        tempo: float = 120.0,
+        # New parameters from Model 2 (Stephanie's NLP)
+        sentiment: str = "positive",
+        lexical_diversity: float = 0.5,
+        hook_repetition: float = 0.5,
+        semantic_coherence: float = 0.5,
+        profanity_detected: bool = False,
         career_stage: str = "emerging"
     ) -> dict:
         """
@@ -56,11 +62,16 @@ class MarketingStrategyGenerator:
             genre=genre,
             instagram_followers=instagram_followers,
             spotify_listeners=spotify_listeners,
+            youtube_subscribers=youtube_subscribers,
             has_fanbase=has_fanbase,
             energy=energy,
-            has_lyrics=has_lyrics,
-            hook_strength=hook_strength,
             danceability=danceability,
+            tempo=tempo,
+            sentiment=sentiment,
+            lexical_diversity=lexical_diversity,
+            hook_repetition=hook_repetition,
+            semantic_coherence=semantic_coherence,
+            profanity_detected=profanity_detected,
             career_stage=career_stage
         )
         
@@ -105,6 +116,101 @@ class MarketingStrategyGenerator:
             return (tokens / 1000) * 0.03
         else:
             return (tokens / 1000) * 0.002
+    
+    def generate_strategy_json(
+        self,
+        prediction_probability: float,
+        budget: int,
+        **kwargs
+    ) -> dict:
+        """
+        Generate marketing strategy with structured JSON output
+        For integration with Reddy's web app (Model 4)
+        
+        Returns:
+            dict with structured strategy data for easy UI display
+        """
+        # Get the full text strategy
+        result = self.generate_strategy(
+            prediction_probability=prediction_probability,
+            budget=budget,
+            **kwargs
+        )
+        
+        if not result["success"]:
+            return result
+        
+        # Parse into structured format
+        strategy_text = result["strategy"]
+        
+        # Extract recommendation (simplified parsing)
+        recommendation = "maybe"
+        if "yes" in strategy_text.lower()[:500] or "invest" in strategy_text.lower()[:500]:
+            recommendation = "invest"
+        elif "no" in strategy_text.lower()[:500] or "skip" in strategy_text.lower()[:500]:
+            recommendation = "skip"
+        
+        # Determine confidence based on prediction
+        if prediction_probability >= 85:
+            confidence = "very_high"
+        elif prediction_probability >= 70:
+            confidence = "high"
+        elif prediction_probability >= 50:
+            confidence = "moderate"
+        else:
+            confidence = "low"
+        
+        # Create structured output for web app
+        structured_output = {
+            "success": True,
+            "recommendation": recommendation,
+            "confidence": confidence,
+            "prediction_probability": prediction_probability,
+            "budget": budget,
+            "strategy_text": strategy_text,
+            "platforms": self._extract_platforms(strategy_text),
+            "budget_allocation": self._estimate_budget_allocation(budget, strategy_text),
+            "metadata": result["metadata"]
+        }
+        
+        return structured_output
+    
+    def _extract_platforms(self, strategy_text: str) -> list:
+        """Extract recommended platforms from strategy text"""
+        platforms = []
+        text_lower = strategy_text.lower()
+        
+        if "spotify" in text_lower:
+            platforms.append("spotify")
+        if "instagram" in text_lower or "reels" in text_lower:
+            platforms.append("instagram")
+        if "tiktok" in text_lower:
+            platforms.append("tiktok")
+        if "youtube" in text_lower:
+            platforms.append("youtube")
+        
+        return platforms
+    
+    def _estimate_budget_allocation(self, total_budget: int, strategy_text: str) -> dict:
+        """
+        Estimate budget split across platforms
+        This is a simplified version - in production, the LLM should output structured data
+        """
+        platforms = self._extract_platforms(strategy_text)
+        
+        if not platforms:
+            return {}
+        
+        # Simple equal split for now (can be improved with better parsing)
+        allocation = {}
+        platform_budget = int(total_budget * 0.9 / len(platforms))  # 90% allocated, 10% reserve
+        
+        for platform in platforms:
+            allocation[platform] = platform_budget
+        
+        allocation["reserve"] = total_budget - sum(allocation.values())
+        
+        return allocation
 
 
 def main():
@@ -126,11 +232,17 @@ def main():
         genre="Indie Pop",
         instagram_followers=1200,
         spotify_listeners=350,
+        youtube_subscribers=800,
         has_fanbase=True,
         energy=7.5,
-        has_lyrics=True,
-        hook_strength=8.0,
         danceability=7.0,
+        tempo=125.0,
+        # Model 2 NLP outputs
+        sentiment="positive",
+        lexical_diversity=0.72,
+        hook_repetition=0.85,
+        semantic_coherence=0.78,
+        profanity_detected=False,
         career_stage="emerging"
     )
     
